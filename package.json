@@ -13,7 +13,8 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
-    "pug": "2.0.0-beta11"
+    "pug": "2.0.0-beta11",
+    "sha1": "^1.1.1"
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
