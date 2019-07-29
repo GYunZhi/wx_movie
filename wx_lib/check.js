@@ -12,11 +12,21 @@ module.exports = (config) => {
     // 3. 使用 sha1 加密
     const resultCode = sha1(tempStr)
 
-    // 4. 将加密后的字符串与 signature 对比，标识该请求是否来源于微信
-    if (resultCode === signature) {
-      res.send(echostr)
-    } else {
-      res.send('mismatch')
+    console.log(req.method)
+
+    if (req.method === 'GET') {
+      // 4. 将加密后的字符串与 signature 对比，标识该请求是否来源于微信
+      if (resultCode === signature) {
+        res.send(echostr)
+      } else {
+        res.send('mismatch')
+      }
+    } else if (req.method === 'POST') {
+      if (resultCode === signature) {
+        next()
+      } else {
+        res.send('mismatch')
+      }
     }
   }
 }
