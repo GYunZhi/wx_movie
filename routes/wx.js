@@ -3,7 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 var config = require('../conf/config.default');
-var { fetchAccessToken, fetchTicket } = require('../controller/wx')
+var { fetchAccessToken, fetchTicket, clearQuota } = require('../controller/wx')
 
 // 微信API调用相关代码
 var check = require('../wx_lib/check')
@@ -25,6 +25,13 @@ router.get('/test/token', function(req, res, next) {
 // 测试 ticket
 router.get('/test/ticket', function(req, res, next) {
   fetchTicket().then(data => {
+    res.send(data)
+  })
+})
+
+// 测试 ticket
+router.get('/test/clearQuota', function(req, res, next) {
+  clearQuota().then(data => {
     res.send(data)
   })
 })

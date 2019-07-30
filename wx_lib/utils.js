@@ -37,8 +37,6 @@ const formatMessage = result => {
 
 const parseTemplate = (content, message) => {
 
-  console.log('message', message)
-
   let type = 'text'
 
   if (Array.isArray(content)) {

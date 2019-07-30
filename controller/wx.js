@@ -16,3 +16,9 @@ exports.fetchTicket = () => {
   })
 }
 
+exports.clearQuota = () => {
+  return wechat.clearQuota().then(data => {
+    return data
+  })
+}
+
