@@ -4,14 +4,9 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var xmlparser = require('express-xml-bodyparser');
 var logger = require('morgan');
-var wxConfig = require('./conf/wx')
 
-// 微信API调用相关代码
-var check = require('./wx_lib/check')
-var msg = require('./wx_lib/msg')
-
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var config = require('./conf/config.default');
+var { connect, initSchemas } = require('./db/init');
 
 var app = express();
 
@@ -28,29 +23,37 @@ app.use(xmlparser({ limit: '1MB' }))
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 微信接入验证
-app.get('/', check(wxConfig))
+(async () => {
+  // 连接数据库，
+  await connect(config.db)
 
-// 消息自动回复
-app.post('/', check(wxConfig), msg())
+  // 初始化schema
+  initSchemas()
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+  var indexRouter = require('./routes/index');
+  var usersRouter = require('./routes/users');
+  var wxRouter = require('./routes/wx');
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+  app.use('/wx', wxRouter);
+  app.use('/users', usersRouter);
+  app.use('/', indexRouter);
 
-// error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'develop' ? err : {};
+  // catch 404 and forward to error handler
+  app.use(function (req, res, next) {
+    next(createError(404));
+  });
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+  // error handler
+  app.use(function (err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'develop' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+  });
+})()
 
 module.exports = app;
+
