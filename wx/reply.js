@@ -36,7 +36,7 @@ exports.reply = async (req, res, next) => {
         reply = '欢迎订阅！'
       } else if (message.event === 'unsubscribe') {
         reply = '取消订阅'
-      } else if (message.event === 'scan') {
+      } else if (message.event === 'SCAN') {
         console.log('关注后扫二维码' + '！ 扫码参数' + message.eventkey + '_' + message.ticket)
       } else if (message.event === 'LOCATION') {
         reply = `您上报的位置是：${message.latitude}-${message.longitude}-${message.precision}`
@@ -307,6 +307,49 @@ exports.reply = async (req, res, next) => {
         console.log(batchUsersInfo)
 
         reply = JSON.stringify(batchUsersInfo)
+      } else if (content === '15') {
+        // let tempQrData = {
+        //   expire_seconds: 400000,
+        //   action_name: 'QR_SCENE',
+        //   action_info: {
+        //     scene: {
+        //       scene_id: 101
+        //     }
+        //   }
+        // }
+        // let tempTicketData = await wechat.handle('createQrcode', tempQrData)
+        // let tempQr = wechat.showQrcode(tempTicketData.ticket)
+
+        let qrData = {
+          action_name: 'QR_LIMIT_SCENE',
+          action_info: {
+            scene: {
+              scene_id: 99
+            }
+          }
+        }
+        let ticketData = await wechat.handle('createQrcode', qrData)
+        let qr = wechat.showQrcode(ticketData.ticket)
+        reply = qr
+
+      } else if (content === '16') {
+        let longurl = 'https://coding.imooc.com/class/178.html?a=1'
+        let shortData = await wechat.handle('createShortUrl', 'long2short', longurl)
+        reply = shortData.short_url
+      } else if (content === '17') {
+        let semanticData = {
+          query: '查一下明天从杭州到北京的南航机票',
+          city: '杭州',
+          category: 'flight,hotel',
+          uid: message.FromUserName
+        }
+        let searchData = await wechat.handle('semantic', semanticData)
+
+        reply = JSON.stringify(searchData)
+      } else if (content === '18') {
+        let body = '编程语言难学么'
+        let aiData = await wechat.handle('aiTranslate', body, 'zh_CN', 'en_US')
+        reply = JSON.stringify(aiData)
       } else if (content === '19') {
         try {
           await wechat.handle('deleteMenu')
