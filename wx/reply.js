@@ -1,22 +1,22 @@
 const { resolve } = require('path')
+const commonMenu = require('./menu')
+const config = require('../conf/config.default')
+
+const help = '亲爱的，欢迎关注\n' +
+  '回复 1-3，测试文字回复\n' +
+  '回复 4，测试图片回复\n' +
+  '回复 首页，进入网站首页\n' +
+  '回复 电影名字，查询电影信息\n' +
+  '点击帮助，获取帮助信息\n' +
+  '某些功能呢订阅号无权限，比如网页授权\n' +
+  '回复语音，查询电影信息\n' +
+  '也可以点击 <a href="' + config.baseUrl + '/sdk">语音查电影</a>，查询电影信息\n'
 
 exports.reply = async (req, res, next) => {
-
-  // message 数据
-  // {
-  //   tousername: 'gh_b5195d96c0d5',
-  //   fromusername: 'ofD82xA2Rb3pY108GwYX15opD0_w',
-  //   createtime: '1564490086',
-  //   msgtype: 'text',
-  //   content: '10',
-  //   msgid: '22398110637796574'
-  // }
-
   const message = req.message
 
   // 获取 WeChat实例
   let getWechat = require('../wx/index').getWechat
-
   let wechat = getWechat()
 
   switch(message.msgtype) {
@@ -27,9 +27,7 @@ exports.reply = async (req, res, next) => {
       break
     }
     case 'image': {
-      let reply = ''
-
-      req.reply = reply
+      console.log(message.PicUrl)
       break
     }
     case 'event': {
@@ -39,9 +37,78 @@ exports.reply = async (req, res, next) => {
       } else if (message.event === 'unsubscribe') {
         reply = '取消订阅'
       } else if (message.event === 'scan') {
-        console.log('关注后扫二维码' + '！ 扫码参数' + message.EventKey + '_' + message.ticket)
+        console.log('关注后扫二维码' + '！ 扫码参数' + message.eventkey + '_' + message.ticket)
       } else if (message.event === 'LOCATION') {
         reply = `您上报的位置是：${message.latitude}-${message.longitude}-${message.precision}`
+      } else if (message.event === 'CLICK') {
+        if (message.eventkey === 'help') {
+          reply = help
+        } else if (message.eventkey === 'movie_hot') {
+          let movies = await api.movie.findHotMovies(-1, 4)
+          reply = []
+
+          movies.forEach(movie => {
+            reply.push({
+              title: movie.title,
+              description: movie.summary,
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              url: config.baseUrl + '/movie/' + movie._id
+            })
+          })
+        } else if (message.eventkey === 'movie_cold') {
+          let movies = await api.movie.findHotMovies(1, 4)
+          reply = []
+
+          movies.forEach(movie => {
+            reply.push({
+              title: movie.title,
+              description: movie.summary,
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              url: config.baseUrl + '/movie/' + movie._id
+            })
+          })
+        } else if (message.eventkey === 'movie_sci') {
+          let catData = await api.movie.findMoviesByCat('科幻')
+          let movies = catData.movies || []
+          reply = []
+
+          movies = movies.slice(0, 6)
+          movies.forEach(movie => {
+            reply.push({
+              title: movie.title,
+              description: movie.summary,
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              url: config.baseUrl + '/movie/' + movie._id
+            })
+          })
+        } else if (message.eventkey === 'movie_love') {
+          let catData = await api.movie.findMoviesByCat('爱情')
+          let movies = catData.movies || []
+          reply = []
+
+          movies.forEach(movie => {
+            reply.push({
+              title: movie.title,
+              description: movie.summary,
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              url: config.baseUrl + '/movie/' + movie._id
+            })
+          })
+        }
+      } else if (message.event === 'VIEW') {
+        console.log('你点击了菜单链接： ' + message.eventkey + ' ' + message.menuid)
+      } else if (message.event === 'scancode_push') {
+        console.log('你扫码了： ' + message.scancodeinfo.scantype + ' ' + message.scancodeinfo.scanresult)
+      } else if (message.event === 'scancode_waitmsg') {
+        console.log('你扫码了： ' + message.scancodeinfo.scantype + ' ' + message.scancodeinfo.scanresult)
+      } else if (message.event === 'pic_sysphoto') {
+        console.log('系统拍照： ' + message.sendpicsinfo.count + ' ' + JSON.stringify(message.sendpicsinfo.piclist))
+      } else if (message.event === 'pic_photo_or_album') {
+        console.log('拍照或者相册： ' + message.sendpicsinfo.count + ' ' + JSON.stringify(message.sendpicsinfo.piclist))
+      } else if (message.event === 'pic_weixin') {
+        console.log('微信相册发图： ' + message.sendpicsinfo.count + ' ' + JSON.stringify(message.sendpicsinfo.piclist))
+      } else if (message.event === 'location_select') {
+        console.log('地理位置： ' + JSON.stringify(message.sendlocationinfo))
       }
 
       req.reply = reply
@@ -240,6 +307,135 @@ exports.reply = async (req, res, next) => {
         console.log(batchUsersInfo)
 
         reply = JSON.stringify(batchUsersInfo)
+      } else if (content === '19') {
+        try {
+          await wechat.handle('deleteMenu')
+          let menu = {
+            button: [
+              {
+                name: '一级菜单',
+                sub_button: [
+                  {
+                    name: '二级菜单 1',
+                    type: 'click',
+                    key: 'no_1'
+                  }, {
+                    name: '二级菜单 2',
+                    type: 'click',
+                    key: 'no_2'
+                  }, {
+                    name: '二级菜单 3',
+                    type: 'click',
+                    key: 'no_3'
+                  }, {
+                    name: '二级菜单 4',
+                    type: 'click',
+                    key: 'no_4'
+                  }, {
+                    name: '二级菜单 5',
+                    type: 'click',
+                    key: 'no_5'
+                  }
+                ]
+              },
+              {
+                name: 'imooc',
+                type: 'view',
+                url: 'https://www.imooc.com'
+              },
+              {
+                name: '新菜单',
+                type: 'click',
+                key: 'new_1'
+              }
+            ]
+          }
+          await wechat.handle('createMenu', menu)
+        } catch (err) {
+          console.log(err)
+        }
+        reply = '菜单创建成功，请等 5 分钟，或者先取消关注，再重新关注就可以看到新菜单'
+      } else if (content === '20') {
+        try {
+          let menu = {
+            button: [
+              {
+                name: 'Scan_Photo',
+                sub_button: [
+                  {
+                    name: '系统拍照',
+                    type: 'pic_sysphoto',
+                    key: 'no_1'
+                  }, {
+                    name: '拍照或者发图',
+                    type: 'pic_photo_or_album',
+                    key: 'no_2'
+                  }, {
+                    name: '微信相册发布',
+                    type: 'pic_weixin',
+                    key: 'no_3'
+                  }, {
+                    name: '扫码',
+                    type: 'scancode_push',
+                    key: 'no_4'
+                  }
+                ]
+              },
+              {
+                name: '跳新链接',
+                type: 'view',
+                url: 'https://www.imooc.com'
+              },
+              {
+                name: '其他',
+                sub_button: [
+                  {
+                    name: '点击',
+                    type: 'click',
+                    key: 'no_11'
+                  }, {
+                    name: '地理位置',
+                    type: 'location_select',
+                    key: 'no_12'
+                  }
+                ]
+              }
+            ]
+          }
+          let rules = {
+            // tag_id: '2',
+            // sex: '0',
+            country: '中国',
+            province: '北京',
+            // city: "广州",
+            // wechat_platform_type: '2',
+            // language: 'zh_CN'
+          }
+          await wechat.handle('createMenu', menu, rules)
+        } catch (err) {
+          console.log(err)
+        }
+
+        let menus = await wechat.handle('fetchMenu')
+
+        console.log(JSON.stringify(menus))
+
+        reply = '个性化菜单创建成功，地理位置为中国北京的用户可以使用个性化菜单'
+      } else if (content === '21') {
+        try {
+          await wechat.handle('deleteMenu')
+          await wechat.handle('createMenu', commonMenu)
+        } catch (err) {
+          console.log(err)
+        }
+        reply = '菜单创建成功，请等 5 分钟，或者先取消关注，再重新关注就可以看到新菜单'
+      } else if (content === '22') {
+        try {
+          let menus = await wechat.handle('fetchMenu')
+          console.log(JSON.stringify(menus))
+        } catch (err) {
+          console.log(err)
+        }
       }
 
       req.reply = reply

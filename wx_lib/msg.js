@@ -11,8 +11,6 @@ module.exports = () => {
     await reply(req, res, next)
     let data = parseTemplate(req.reply, req.message)
 
-    console.log('xml', data)
-
     res.writeHead(200, {
       'Content-Type': 'application/xml'
     });

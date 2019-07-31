@@ -39,6 +39,14 @@ const api = {
     remark: base + 'user/info/updateremark?',
     info: base + 'user/info?',
     batch: base + 'user/info/batchget?'
+  },
+
+  // 自定义菜单
+  menu: {
+    create: base + 'menu/create?',
+    del: base + 'menu/delete?',
+    custom: base + 'menu/addconditional?',
+    fetch: base + 'menu/get?'
   }
 }
 
@@ -47,6 +55,8 @@ const api = {
  * access_token 获取、刷新
  * ticket 获取、刷新
  * 素材管理
+ * 用户管理
+ * 菜单管理
  *
  */
 module.exports = class Wechat {
@@ -250,7 +260,7 @@ module.exports = class Wechat {
   }
 
   // 删除素材
-  deleteMaterial(token, mediaId) {
+  deleteMaterial (token, mediaId) {
     const form = {
       media_id: mediaId
     }
@@ -264,7 +274,7 @@ module.exports = class Wechat {
   }
 
   // 更新图文素材
-  updateMaterial(token, mediaId, news) {
+  updateMaterial (token, mediaId, news) {
     let form = {
       media_id: mediaId
     }
@@ -280,7 +290,7 @@ module.exports = class Wechat {
   }
 
   // 获取素材总数
-  countMaterial(token) {
+  countMaterial (token) {
     const url = `${api.permanent.count}access_token=${token}`
     return {
       method: 'POST',
@@ -289,7 +299,7 @@ module.exports = class Wechat {
   }
 
   // 获取素材列表
-  batchMaterial(token, options) {
+  batchMaterial (token, options) {
     options.type = options.type || 'image'
     options.offset = options.offset || 0
     options.count = options.count || 10
@@ -304,7 +314,7 @@ module.exports = class Wechat {
   }
 
   // 创建标签
-  createTag(token, name) {
+  createTag (token, name) {
     const body = { tag: { name }}
 
     const url = api.tag.create + 'access_token=' + token
@@ -317,14 +327,14 @@ module.exports = class Wechat {
   }
 
   // 获取全部标签
-  fetchTags(token) {
+  fetchTags (token) {
     const url = api.tag.fetch + 'access_token=' + token
 
     return { url }
   }
 
   // 编辑标签
-  updateTag(token, id, name) {
+  updateTag (token, id, name) {
     const body = { tag: { id, name } }
 
     const url = api.tag.update + 'access_token=' + token
@@ -337,7 +347,7 @@ module.exports = class Wechat {
   }
 
   // 删除标签
-  delTag(token, id) {
+  delTag (token, id) {
     const body = { tag: { id }}
 
     const url = api.tag.del + 'access_token=' + token
@@ -350,7 +360,7 @@ module.exports = class Wechat {
   }
 
   // 批量加标签和取消标签
-  batchTag(token, openidList, id, unTag) {
+  batchTag (token, openidList, id, unTag) {
     const body = { openid_list: openidList, tagid: id }
 
     let url = !unTag ? api.tag.batchTag : api.tag.batchUnTag
@@ -364,7 +374,7 @@ module.exports = class Wechat {
   }
 
   // 获取标签下的用户列表
-  fetchTagUsers(token, id, openId) {
+  fetchTagUsers (token, id, openId) {
     const body = { tagid: id, next_openid: openId || '' }
 
     const url = api.tag.fetchUsers + 'access_token=' + token
@@ -377,7 +387,7 @@ module.exports = class Wechat {
   }
 
   // 获取某个用户的标签列表
-  getUserTags(token, openId) {
+  getUserTags (token, openId) {
     const body = { openid: openId }
 
     const url = api.tag.getUserTags + 'access_token=' + token
@@ -390,7 +400,7 @@ module.exports = class Wechat {
   }
 
   // 设置用户备注名(认证服务号专用接口)
-  remarkUser(token, openId, remark) {
+  remarkUser (token, openId, remark) {
     const body = { openid: openId, remark }
 
     const url = api.user.remark + 'access_token=' + token
@@ -403,14 +413,14 @@ module.exports = class Wechat {
   }
 
   // 获取用户基本信息
-  getUserInfo(token, openId, lan = 'zh_CN') {
+  getUserInfo (token, openId, lan = 'zh_CN') {
     const url = api.user.info + 'access_token=' + token + '&openid=' + openId + '&lang=' + lan
 
     return { url }
   }
 
   // 批量获取用户基本信息
-  fetchBatchUsers(token, openIdList) {
+  fetchBatchUsers (token, openIdList) {
     const body = { user_list: openIdList }
 
     const url = api.user.batch + 'access_token=' + token
@@ -426,6 +436,34 @@ module.exports = class Wechat {
   fetchUserList(token, openId) {
     const url = api.user.fetch + 'access_token=' + token + '&next_openid=' + (openId || '')
 
+    return { url }
+  }
+
+  // 创建普通菜单和个性化菜单
+  createMenu (token, menu, rules) {
+    let url = api.menu.create + 'access_token=' + token
+
+    if (rules) {
+      url = api.menu.custom + 'access_token=' + token
+      menu.matchrule = rules
+    }
+
+    return {
+      method: 'POST',
+      url,
+      body: menu
+    }
+  }
+
+  // 删除菜单
+  deleteMenu (token) {
+    const url = api.menu.del + 'access_token=' + token
+    return { url }
+  }
+
+  // 获取菜单
+  fetchMenu (token) {
+    const url = api.menu.fetch + 'access_token=' + token
     return { url }
   }
 }
