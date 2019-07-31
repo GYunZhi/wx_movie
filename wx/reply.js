@@ -2,6 +2,16 @@ const { resolve } = require('path')
 
 exports.reply = async (req, res, next) => {
 
+  // message 数据
+  // {
+  //   tousername: 'gh_b5195d96c0d5',
+  //   fromusername: 'ofD82xA2Rb3pY108GwYX15opD0_w',
+  //   createtime: '1564490086',
+  //   msgtype: 'text',
+  //   content: '10',
+  //   msgid: '22398110637796574'
+  // }
+
   const message = req.message
 
   // 获取 WeChat实例
@@ -26,6 +36,12 @@ exports.reply = async (req, res, next) => {
       let reply = ''
       if (message.event === 'subscribe') {
         reply = '欢迎订阅！'
+      } else if (message.event === 'unsubscribe') {
+        reply = '取消订阅'
+      } else if (message.event === 'scan') {
+        console.log('关注后扫二维码' + '！ 扫码参数' + message.EventKey + '_' + message.ticket)
+      } else if (message.event === 'LOCATION') {
+        reply = `您上报的位置是：${message.latitude}-${message.longitude}-${message.precision}`
       }
 
       req.reply = reply
@@ -175,6 +191,55 @@ exports.reply = async (req, res, next) => {
           voice: ${resp[2].total_count}
           news: ${resp[3].total_count}
         `
+      } else if (content === '10') {
+        // 创建标签
+        // let newTag = await wechat.handle('createTag', 'imooc')
+        // console.log(newTag)
+
+        // 获取全部的标签
+        let tagsData = await wechat.handle('fetchTags')
+        reply = JSON.stringify(tagsData.tags)
+
+        // 编辑标签
+        // await wechat.handle('updateTag', 101, '慕课网')
+
+        // 删除标签
+        // await wechat.handle('delTag', 100)
+
+        // 批量加标签和取消标签
+        // let data = await wechat.handle('batchTag', [message.fromusername], 101, true)
+        // console.log(data)
+
+        // 获取某个标签的用户列表
+        // let userList = await wechat.handle('fetchTagUsers', 101)
+        // console.log(userList)
+
+        // 获取某个用户的标签列表
+        // let userTags = await wechat.handle('getUserTags', message.fromusername)
+        // reply= JSON.stringify(userTags)
+      } else if (content === '11') {
+        let userList = await wechat.handle('fetchUserList')
+
+        reply = userList.total + ' 个关注者'
+      } else if (content === '12') {
+        await wechat.handle('remarkUser', message.fromusername, 'Scott')
+        reply = '添加备注成功'
+      } else if (content === '13') {
+        let userInfoData = await wechat.handle('getUserInfo', message.fromusername)
+
+        reply = JSON.stringify(userInfoData)
+      } else if (content === '14') {
+        let batchUsersInfo = await wechat.handle('fetchBatchUsers', [{
+          openid: message.fromusername,
+          lang: 'zh_CN'
+        }, {
+          openid: 'ofD82xFUtZAFy2uUUZaJVQlRMTsQ',
+          lang: 'zh_CN'
+        }])
+
+        console.log(batchUsersInfo)
+
+        reply = JSON.stringify(batchUsersInfo)
       }
 
       req.reply = reply

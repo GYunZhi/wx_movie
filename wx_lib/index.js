@@ -6,6 +6,7 @@ const api = {
   clearQuota: base + 'clear_quota?',
   accessToken: base + 'token?grant_type=client_credential',
   ticket: base + 'ticket/getticket?',
+
   // 素材管理
   temporary: {
     upload: base + 'media/upload?',
@@ -21,6 +22,24 @@ const api = {
     count: base + 'material/get_materialcount?',
     batch: base + 'material/batchget_material?'
   },
+
+  // 用户管理
+  tag: {
+    create: base + 'tags/create?',
+    fetch: base + 'tags/get?',
+    update: base + 'tags/update?',
+    del: base + 'tags/delete?',
+    fetchUsers: base + 'user/tag/get?',
+    batchTag: base + 'tags/members/batchtagging?',
+    batchUnTag: base + 'tags/members/batchuntagging?',
+    getUserTags: base + 'tags/getidlist?'
+  },
+  user: {
+    fetch: base + 'user/get?',
+    remark: base + 'user/info/updateremark?',
+    info: base + 'user/info?',
+    batch: base + 'user/info/batchget?'
+  }
 }
 
 /**
@@ -198,7 +217,7 @@ module.exports = class Wechat {
     return options
   }
 
-  // 获取素材本身
+  // 获取素材
   fetchMaterial (token, mediaId, type, permanent) {
     let form = {}
     let fetchUrl = api.temporary.fetch
@@ -282,5 +301,131 @@ module.exports = class Wechat {
       url,
       body: options
     }
+  }
+
+  // 创建标签
+  createTag(token, name) {
+    const body = { tag: { name }}
+
+    const url = api.tag.create + 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+  // 获取全部标签
+  fetchTags(token) {
+    const url = api.tag.fetch + 'access_token=' + token
+
+    return { url }
+  }
+
+  // 编辑标签
+  updateTag(token, id, name) {
+    const body = { tag: { id, name } }
+
+    const url = api.tag.update + 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+  // 删除标签
+  delTag(token, id) {
+    const body = { tag: { id }}
+
+    const url = api.tag.del + 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+  // 批量加标签和取消标签
+  batchTag(token, openidList, id, unTag) {
+    const body = { openid_list: openidList, tagid: id }
+
+    let url = !unTag ? api.tag.batchTag : api.tag.batchUnTag
+    url += 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+  // 获取标签下的用户列表
+  fetchTagUsers(token, id, openId) {
+    const body = { tagid: id, next_openid: openId || '' }
+
+    const url = api.tag.fetchUsers + 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+  // 获取某个用户的标签列表
+  getUserTags(token, openId) {
+    const body = { openid: openId }
+
+    const url = api.tag.getUserTags + 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+  // 设置用户备注名(认证服务号专用接口)
+  remarkUser(token, openId, remark) {
+    const body = { openid: openId, remark }
+
+    const url = api.user.remark + 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+  // 获取用户基本信息
+  getUserInfo(token, openId, lan = 'zh_CN') {
+    const url = api.user.info + 'access_token=' + token + '&openid=' + openId + '&lang=' + lan
+
+    return { url }
+  }
+
+  // 批量获取用户基本信息
+  fetchBatchUsers(token, openIdList) {
+    const body = { user_list: openIdList }
+
+    const url = api.user.batch + 'access_token=' + token
+
+    return {
+      method: 'POST',
+      url,
+      body
+    }
+  }
+
+   // 获取用户列表
+  fetchUserList(token, openId) {
+    const url = api.user.fetch + 'access_token=' + token + '&next_openid=' + (openId || '')
+
+    return { url }
   }
 }
