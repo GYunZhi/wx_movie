@@ -1,0 +1,52 @@
+header(style='background: #343a40;')
+  .container
+    .navbar.navbar-dark
+      a.navbar-brand(href="/") 时光的余热
+      form(method='GET', action='/results')
+        .input-group
+          input.form-control(type='text', name='q')
+          span.input-group-btn(style='margin-left: 10px;')
+            button.btn.btn-default(type='submit') 搜索
+      if user && user.nickname
+        p.navbar-text.navbar-right(style='padding-bottom: 0;')
+          span 欢迎您，#{user.nickname}
+          span &nbsp;|&nbsp;
+          a.navbar-link(href="/logout") 登出
+      else
+        p.navbar-text.navbar-right(style='padding-bottom: 0;')
+          a.navbar-link(href="#", data-toggle="modal", data-target="#signupModal") 注册
+          span &nbsp;|&nbsp;
+          a.navbar-link(href="#", data-toggle="modal", data-target="#signinModal") 登录
+#signupModal.modal.fade
+  .modal-dialog
+    .modal-content
+      form(method="POST", action="/user/signup")
+        .modal-header 注册
+        .modal-body
+          .form-group
+            label(for="signupEmail") 用户邮箱
+            input#signupEmail.form-control(name="user[email]", type="text")
+          .form-group
+            label(for="signupNickname") 用户昵称
+            input#signupNickname.form-control(name="user[nickname]", type="text")
+          .form-group
+            label(for="signupPassword") 密码
+            input#signupPassword.form-control(name="user[password]", type="password")
+        .modal-footer
+          button.btn.btn-default(type="button", data-dismiss="modal") 关闭
+          button.btn.btn-success(type="submit") 提交
+#signinModal.modal.fade
+  .modal-dialog
+    .modal-content
+      form(method="POST", action="/user/signin")
+        .modal-header 登录
+        .modal-body
+          .form-group
+            label(for="signinEmail") 用户邮箱
+            input#signinEmail.form-control(name="user[email]", type="text")
+          .form-group
+            label(for="signinPassword") 密码
+            input#signinPassword.form-control(name="user[password]", type="password")
+        .modal-footer
+          button.btn.btn-default(type="button", data-dismiss="modal") 关闭
+          button.btn.btn-success(type="submit") 提交

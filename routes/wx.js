@@ -3,7 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 var config = require('../conf/config.default');
-var { fetchAccessToken, fetchTicket, clearQuota, oauth, getUserinfo } = require('../controller/wx')
+var { fetchAccessToken, fetchTicket, clearQuota, oauth, getUserinfo, getSignature } = require('../controller/wx')
 
 // 微信API调用相关代码
 var check = require('../wx_lib/check')
@@ -59,6 +59,15 @@ router.get('/userinfo', function (req, res, next) {
   let code = req.query.code
   getUserinfo(code).then(data => {
     res.send(data)
+  })
+})
+
+// 获取 signature，使用 jssdk
+router.get('/jssdk', function (req, res, next) {
+  const url = req.href
+  getSignature(url).then(data => {
+    // res.send(data)
+    res.render('wx/jssdk', data)
   })
 })
 

@@ -1,5 +1,6 @@
 
 const config = require('../conf/config.default')
+const { sign } = require('../wx_lib/utils')
 
 // 获取 WeChat, WechatOAuth 实例
 const { getWechat, getOAuth} = require('../wx/index')
@@ -38,4 +39,19 @@ exports.getUserinfo = async (code) => {
   const userData = await oauth.getUserInfo(data.access_token, data.openid)
 
   return userData
+}
+
+// 获取 signature，使用 js-sdk
+exports.getSignature = async (url) => {
+
+  const tokenData = await wechat.fetchAccessToken()
+  const token = tokenData.access_token
+
+  const ticketData = await wechat.fetchTicket(token)
+  const ticket = ticketData.ticket
+
+  let params = sign(ticket, url)
+  params.appId = wechat.appID
+
+  return params
 }
