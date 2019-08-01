@@ -3,7 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 var config = require('../conf/config.default');
-var { fetchAccessToken, fetchTicket, clearQuota } = require('../controller/wx')
+var { fetchAccessToken, fetchTicket, clearQuota, oauth, getUserinfo } = require('../controller/wx')
 
 // 微信API调用相关代码
 var check = require('../wx_lib/check')
@@ -29,9 +29,35 @@ router.get('/test/ticket', function(req, res, next) {
   })
 })
 
-// 测试 ticket
+// 清除调用频次限制（每月共10次清零操作机会）
 router.get('/test/clearQuota', function(req, res, next) {
   clearQuota().then(data => {
+    res.send(data)
+  })
+})
+
+// 跳到授权页面(静默授权)
+router.get('/oauth', function (req, res, next) {
+  let id = req.query.id
+  let type = 'snsapi_userinfo'
+  oauth(id, type).then(url => {
+    res.redirect(url)
+  })
+})
+
+// 跳到授权页面（手动授权）
+router.get('/oauth/base', function (req, res, next) {
+  let id = req.query.id
+  let type = 'snsapi_base'
+  oauth(id, type).then(url => {
+    res.redirect(url)
+  })
+})
+
+// 通过 code 获取用户信息
+router.get('/userinfo', function (req, res, next) {
+  let code = req.query.code
+  getUserinfo(code).then(data => {
     res.send(data)
   })
 })

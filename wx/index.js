@@ -1,4 +1,5 @@
 const Wechat = require('../wx_lib')
+const WechatOAuth = require('../wx_lib/oauth')
 const config = require('../conf/config.default')
 const mongoose = require('mongoose')
 
@@ -28,3 +29,4 @@ const wxConfig = {
 }
 
 exports.getWechat = () => new Wechat(wxConfig)
+exports.getOAuth = () => new WechatOAuth(wxConfig)

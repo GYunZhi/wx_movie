@@ -15,7 +15,7 @@ const help = '亲爱的，欢迎关注\n' +
 exports.reply = async (req, res, next) => {
   const message = req.message
 
-  // 获取 WeChat实例
+  // 获取 WeChat 实例
   let getWechat = require('../wx/index').getWechat
   let wechat = getWechat()
 
