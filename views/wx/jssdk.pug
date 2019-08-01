@@ -2,15 +2,16 @@ extends ../wx
 
 block content
   #container.container(style='padding: 15px; text-align: center;')
-  h1 语音识别查电影
+  h1 语音识别查歌曲
   .weui-btn.weui-btn_primary 点击开始录音
   h2#title
-  #director
-  #year
-  #poster
+  #author
+  #pic
+  #url
+
   script.
     wx.config({
-      debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+      debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
       appId: '#{appId}', // 必填，公众号的唯一标识
       timestamp: '#{timestamp}', // 必填，生成签名的时间戳
       nonceStr: '#{noncestr}', // 必填，生成签名的随机串
@@ -54,14 +55,14 @@ block content
         }
       }
 
-      var doubanSlides
+      //- var doubanSlides
       var isRecording = false
 
       wx.onMenuShareAppMessage(shareContent)
 
-      $('#poster').on('click', function () {
-        wx.previewImage(doubanSlides)
-      })
+      //- $('#poster').on('click', function () {
+      //-   wx.previewImage(doubanSlides)
+      //- })
 
       $('.weui-btn').on('click', function () {
         if (!isRecording) {
@@ -71,12 +72,8 @@ block content
           wx.startRecord({
             success: function (res) {
               var localId = res.localId
-            },
-            cancel: function () {
-              window.alert('那就不能搜了哦！')
             }
           })
-
           return
         }
 
@@ -85,7 +82,8 @@ block content
         $('.weui-btn').html('点击开始录音')
 
         wx.stopRecord({
-          success: function () {
+          success: function (res) {
+            console.log('88888888', res)
             var localId = res.localId
 
             wx.translateVoice({
@@ -93,42 +91,48 @@ block content
               isShowProgressTips: 1, // 默认为1，显示进度提示
               success: function (res) {
                 var result = res.translateResult
-
+                console.log('99999999', result)
                 $.ajax({
                   type: 'get',
-                  url: 'https://api.douban.com/v2/movie/search?q=' + result,
-                  dataType: 'jsonp',
+                  contentType: 'text/javascript',
+                  url: 'https://api.apiopen.top/searchMusic?name=' + result,
+                  dataType: 'json',
                   success: function (data) {
-                    var subject = data.subjects[0]
+
+                    var subject = data.result[0]
 
                     $('#title').html(subject.title)
-                    $('#year').html(subject.year)
-                    $('#director').html(subject.director)
-                    $('#poster').html('<img src="' + subject.image.large + '" />')
+                    $('#author').html(subject.author)
+                    $('#pic').html('<img src="' + subject.pic + '" />')
+                    $('#url').html(`<audio src=${subject.url} controls></audio>`)
 
-                    shareContent = {
-                      title: subject.title,
-                      desc: subject.year + '上映',
-                      link: 'https://www.imooc.com/',
-                      imgUrl: subject.images.large,
-                      success: function () {
-                        window.alert('分享成功')
-                      },
-                      cancel: function () {
-                        window.alert('分享失败')
-                      }
-                    }
 
-                    doubanSlides = {
-                      content: subject.images.large,
-                      urls: [subject.images.large]
-                    }
+                    //- shareContent = {
+                    //-   title: subject.title,
+                    //-   desc: subject.year + '上映',
+                    //-   link: 'https://www.imooc.com/',
+                    //-   imgUrl: subject.images.large,
+                    //-   success: function () {
+                    //-     window.alert('分享成功')
+                    //-   },
+                    //-   cancel: function () {
+                    //-     window.alert('分享失败')
+                    //-   }
+                    //- }
 
-                    data.subjects.forEach(function(item) {
-                      doubanSlides.urls.push(item.images.large)
-                    })
+                    //- doubanSlides = {
+                    //-   content: subject.images.large,
+                    //-   urls: [subject.images.large]
+                    //- }
 
-                    wx.onMenuShareAppMessage(shareContent)
+                    //- data.subjects.forEach(function(item) {
+                    //-   doubanSlides.urls.push(item.images.large)
+                    //- })
+
+                    //- wx.onMenuShareAppMessage(shareContent)
+                  },
+                  error: function (err) {
+                    console.log('20202020', err)
                   }
                 })
               }

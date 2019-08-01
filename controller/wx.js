@@ -50,8 +50,14 @@ exports.getSignature = async (url) => {
   const ticketData = await wechat.fetchTicket(token)
   const ticket = ticketData.ticket
 
+  console.log(token)
+
+  console.log(ticket)
+
   let params = sign(ticket, url)
   params.appId = wechat.appID
+
+  console.log('params', params)
 
   return params
 }

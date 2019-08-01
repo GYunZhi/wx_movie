@@ -64,9 +64,8 @@ router.get('/userinfo', function (req, res, next) {
 
 // 获取 signature，使用 jssdk
 router.get('/jssdk', function (req, res, next) {
-  const url = req.href
+  const url = req.protocol + '://' + req.get('host') + req.originalUrl
   getSignature(url).then(data => {
-    // res.send(data)
     res.render('wx/jssdk', data)
   })
 })
