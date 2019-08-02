@@ -16,18 +16,12 @@ router.get('/register', function (req, res, next) {
 })
 
 // 登录
-router.post('/login', function (req, res, next) {
-  login(req, res, next)
-})
+router.post('/login', login)
 
 // 注册
-router.post('/register', function (req, res, next) {
-  register(req, res, next)
-})
+router.post('/register', register)
 
 // 登出
-router.get('/logout', function (req, res, next) {
-  logout(req, res, next)
-})
+router.get('/logout', logout)
 
 module.exports = router;

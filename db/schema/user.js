@@ -21,7 +21,7 @@ const UserSchema = new Schema({
   // 兼容各个微信应用，小程序或者公众号的微信用户 ID
   openid: [String],
   unionid: String,
-  // 来自哪个渠道关注的
+  // 来自哪个渠道的账号
   from: String,
   nickname: String,
   address: String,

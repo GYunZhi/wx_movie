@@ -6,6 +6,8 @@ const session = require('express-session')
 var xmlparser = require('express-xml-bodyparser');
 var logger = require('morgan');
 const mongoose = require('mongoose')
+var moment = require('moment')
+
 
 var config = require('./conf/config.default');
 var { connect, initSchemas } = require('./db/init');
@@ -15,6 +17,9 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+
+// 添加 moment
+app.locals.moment = moment;
 
 app.use(logger('dev'));
 
@@ -72,11 +77,14 @@ app.use(express.static(path.join(__dirname, 'public')));
   })
 
   var indexRouter = require('./routes/index');
-  var userRouter = require('./routes/user');
   var wxRouter = require('./routes/wx');
+  var userRouter = require('./routes/user');
+  var adminRouter = require('./routes/admin');
+
 
   app.use('/wx', wxRouter);
   app.use('/user', userRouter);
+  app.use('/admin', adminRouter);
   app.use('/', indexRouter);
 
   // catch 404 and forward to error handler

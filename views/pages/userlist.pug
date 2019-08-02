@@ -1,0 +1,49 @@
+extends ../layout
+
+block content
+  .container
+    .row
+      table.table.table-hover.table-bordered
+        thead
+          tr
+            th 昵称
+            th 来源
+            th 邮箱
+            th 身份
+            th 更新时间
+            th 删除
+        tbody
+          if users && users.length
+            each item in users
+              tr(class='item-id-' + item._id)
+                td #{item.nickname}
+                td
+                  if item.from == 'wechat'
+                    | 微信
+                  else
+                    | 注册
+                td #{item.email}
+                td #{item.role}
+                td #{moment(item.updatedAt).format('MM/DD/YYYY')}
+                td
+                  button.btn.btn-danger.del(type='button', data-id=item._id) 删除
+  script.
+    $(function() {
+      $('.del').click(function(e) {
+        var target = $(e.target)
+        var id = target.data('id')
+        var tr = $('.item-id-' + id)
+
+        $.ajax({
+          type: 'DELETE',
+          url: '/admin/user?id=' + id
+        })
+        .done(function(results) {
+          if (results.success) {
+            if (tr.length >= 1) {
+              tr.remove()
+            }
+          }
+        })
+      })
+    })
