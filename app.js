@@ -2,8 +2,10 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+const session = require('express-session')
 var xmlparser = require('express-xml-bodyparser');
 var logger = require('morgan');
+const mongoose = require('mongoose')
 
 var config = require('./conf/config.default');
 var { connect, initSchemas } = require('./db/init');
@@ -16,8 +18,20 @@ app.set('view engine', 'pug');
 
 app.use(logger('dev'));
 
+
+// 配置 session
+app.use(session({
+  name: 'userId',
+  secret: 'WJiol#23123_',
+  cookie: {
+    // path: '/',   // 默认配置
+    // httpOnly: true,  // 默认配置
+    maxAge: 12 * 60 * 60 * 1000
+  }
+}))
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(xmlparser({ limit: '1MB' }))
 
@@ -30,12 +44,39 @@ app.use(express.static(path.join(__dirname, 'public')));
   // 初始化schema
   initSchemas()
 
+  // 判断用户是否登录，使用 app.locals.user 定义全局数据，并在渲染模板中使用
+  app.use(async (req, res, next) => {
+    const User = mongoose.model('User')
+    let user = req.session.user
+
+    if (user && user._id) {
+      user = await User.findOne({ _id: user._id })
+
+      if (user) {
+        req.session.user = {
+          _id: user._id,
+          role: user.role,
+          nickname: user.nickname
+        }
+        app.locals = Object.assign(app.locals, {
+          user: {
+            _id: user._id,
+            nickname: user.nickname
+          }
+        })
+      }
+    } else {
+      app.locals.user = null
+    }
+    await next()
+  })
+
   var indexRouter = require('./routes/index');
-  var usersRouter = require('./routes/users');
+  var userRouter = require('./routes/user');
   var wxRouter = require('./routes/wx');
 
   app.use('/wx', wxRouter);
-  app.use('/users', usersRouter);
+  app.use('/user', userRouter);
   app.use('/', indexRouter);
 
   // catch 404 and forward to error handler
