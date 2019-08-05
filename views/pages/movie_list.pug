@@ -29,7 +29,7 @@ block content
                   if item.poster.indexOf('http') > -1
                     img(src=item.poster, width=100)
                   else
-                    img(src='/upload/' + item.poster, width=100)
+                    img(src=item.poster, width=100)
                 td #{item.director}
                 td #{item.country}
                 td #{item.year}

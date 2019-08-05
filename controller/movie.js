@@ -27,7 +27,8 @@ exports.savePosterURL = async (req, res, next) => {
   const fileName = posterData.filename
 
   if (fileName) {
-    const url = req.protocol + '://' + req.get('host') + '/' + fileName
+    // const url = req.protocol + '://' + req.get('host') + '/' + fileName
+    const url = '/' + fileName
     req.poster = url
   }
 
