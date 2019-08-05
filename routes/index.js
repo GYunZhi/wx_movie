@@ -1,12 +1,10 @@
 var express = require('express');
 var router = express.Router();
 
-var { getCatagoryList } = require('../controller/index')
+var { getCatagoryList, detail } = require('../controller/index')
 
-router.get('/', function(req, res, next) {
-  getCatagoryList().then(categories => {
-    res.render('pages/index', {title: '首页', categories});
-  })
-});
+router.get('/', getCatagoryList);
+
+router.get('/movie/:_id', detail)
 
 module.exports = router;

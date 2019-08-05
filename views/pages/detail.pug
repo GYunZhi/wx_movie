@@ -1,0 +1,159 @@
+extends ../layout
+
+block content
+  .container(style='margin-top: 20px')
+    if movie && movie.title
+      .row
+        .col-md-7.col-sm-12
+          if movie.poster.indexOf('http') > -1
+            img#poster(src=movie.poster, alt=movie.title, width='100%')
+          else
+            img#poster(src='/upload/' + movie.poster, alt=movie.title, width='100%')
+        .col-md-5
+          .dl-horizontal
+            dt 电影名字
+            dd= movie.title
+            dt 导演
+            dd= movie.director
+            dt 国家
+            dd= movie.country
+            dt 上映年份
+            dd= movie.year
+            dt 简介
+            dd= movie.summary
+          .panel-heading
+            h4 评论区
+          .panel-body
+            ul.media-list(style='padding-left: 0')
+              if comments && comments.length > 0
+                each item in comments
+                  if item && item.from
+                    li.media(style='margin-bottom: 8px;')
+                      a.comment(href='#comments', data-cid=item._id, data-tid=item.from._id)
+                        img.media-object(src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+', style='width: 64px;height: 64px;margin-right: 10px;')
+                      .media-body
+                        h5.media-heading #{item.from.nickname}
+                        p #{item.content}
+                        if item.replies && item.replies.length > 0
+                          each reply in item.replies
+                            .media
+                              a.comment(href='#comments', data-cid=item._id, data-tid=item.from._id)
+                                img.media-object(src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+', style='width: 64px;height: 64px;margin-right: 10px;')
+                              .media-body
+                                h5.media-heading
+                                  | #{reply.from.nickname}
+                                  span.text-info &nbsp;回复&nbsp;
+                                  | #{reply.to.nickname}
+                                p #{reply.content}
+            #comments
+              form#commentForm(method='POST', action='/comment')
+                input(type='hidden', name='comment[movie]', value=movie._id)
+                if user
+                  input(type='hidden', name='comment[from]', value=user._id)
+                  input#toId(type='hidden', name='comment[tid]')
+                  input#commentId(type='hidden', name='comment[cid]')
+                .form-group
+                  textarea.form-control(name='comment[content]', row='4')
+                if user && user._id
+                  button#commentSubmit.btn.btn-primary(type='submit') 提交评论
+                else
+                  a.navbar-link(href='#', data-toggle='modal', data-target='#signinModal') 登录后再评论
+  script.
+    $(function() {
+      var url = window.location.href
+
+      $.ajax({
+        type: 'POST',
+        url: '/wechat/signature?url=' + encodeURIComponent(url)
+      }).done(function(results) {
+        if (results.success) {
+          var data = results.data
+
+          wx.config({
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: data.appId, // 必填，公众号的唯一标识
+            timestamp: data.timestamp, // 必填，生成签名的时间戳
+            nonceStr: data.noncestr, // 必填，生成签名的随机串
+            signature: data.signature,// 必填，签名
+            jsApiList: [
+              'onMenuShareTimeline',
+              'onMenuShareAppMessage',
+              'translateVoice'
+            ] // 必填，需要使用的JS接口列表
+          });
+        }
+      })
+
+      wx.ready(function() {
+        // config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
+        wx.checkJsApi({
+          jsApiList: [
+            'onMenuShareTimeline',
+            'onMenuShareAppMessage',
+            'translateVoice'
+          ],
+          success: function (res) {
+            console.log(res)
+          }
+        })
+
+        var poster = '#{movie.poster}'
+
+        if (poster.indexOf('http') === -1) {
+          poster = window.location.origin + '/upload/' + poster
+        }
+
+        var shareContent = {
+          title: '#{movie.title}-时光的预热', // 分享标题
+          desc: '匆匆岁月，看我找到了什么',
+          link: window.location.origin, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+          imgUrl: poster, // 分享图标
+          success: function () {
+            window.alert('分享成功')
+          },
+          cancel: function () {
+            window.alert('分享失败')
+          }
+        }
+
+        var slides = {
+          content: poster,
+          urls: [poster]
+        }
+
+        wx.onMenuShareAppMessage(shareContent)
+
+        $('#poster').on('click', function () {
+          wx.previewImage(slides)
+        })
+      });
+
+      wx.error(function(res){
+        // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+      });
+
+
+      $('.comment').click(function(e) {
+        var target = $(this)
+        var toId = target.data('tid')
+        var commentId = target.data('cid')
+
+        $('#toId').val(toId)
+        $('#commentId').val(commentId)
+      })
+
+      $('#commentSubmit').click(function(e) {
+        e.preventDefault()
+
+        $.ajax({
+          type: 'POST',
+          url: '/comment',
+          data: $('#commentForm').serialize()
+        }).done(function(results) {
+          if (results.success) {
+            window.location.reload()
+          }
+        })
+      })
+    })
+
