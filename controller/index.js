@@ -27,6 +27,7 @@ exports.detail = async (req, res, next) => {
 
   await Movie.update({ _id }, { $inc: { pv: 1 } })
 
+  // 获取评论
   const comments = await Comment.find({
     movie: _id
   })
@@ -44,7 +45,7 @@ exports.detail = async (req, res, next) => {
 exports.search = async (req, res, next) => {
   const { cat, q, p } = req.query
   const page = parseInt(p, 10) || 0
-  const count = 2
+  const count = 4
   const index = page * count
 
   if (cat) {
@@ -82,5 +83,36 @@ exports.search = async (req, res, next) => {
       totalPage: Math.ceil(movies.length / count),
       movies: results
     })
+  }
+}
+
+// 评论
+exports.comment = async (req, res, next) => {
+  const commentData = req.body.comment
+
+  if (commentData.cid) {
+    let comment = await Comment.findOne({
+      _id: commentData.cid
+    })
+
+    const reply = {
+      from: commentData.from,
+      to: commentData.tid,
+      content: commentData.content
+    }
+
+    comment.replies.push(reply)
+
+    await comment.save()
+
+    res.send({ success: true })
+  } else {
+    let comment = new Comment({
+      movie: commentData.movie,
+      from: commentData.from,
+      content: commentData.content
+    })
+    await comment.save()
+    res.send({ success: true })
   }
 }
