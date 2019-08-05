@@ -2,8 +2,9 @@ var express = require('express');
 var router = express.Router();
 
 var { checkLogin, checkAdmin } = require('../utils')
-var { getUserList} = require('../controller/admin')
+var { getUserList} = require('../controller/userMag')
 
-router.get('/users', checkLogin, checkAdmin, getUserList);
+// 后台的用户列表页面
+router.get('/', getUserList);
 
 module.exports = router;

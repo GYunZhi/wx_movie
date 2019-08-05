@@ -79,12 +79,15 @@ app.use(express.static(path.join(__dirname, 'public')));
   var indexRouter = require('./routes/index');
   var wxRouter = require('./routes/wx');
   var userRouter = require('./routes/user');
-  var adminRouter = require('./routes/admin');
+  var userMagRouter = require('./routes/userMag');
+  var categoryRouter = require('./routes/category');
+
 
 
   app.use('/wx', wxRouter);
   app.use('/user', userRouter);
-  app.use('/admin', adminRouter);
+  app.use('/admin/users', userMagRouter);
+  app.use('/admin/category', categoryRouter);
   app.use('/', indexRouter);
 
   // catch 404 and forward to error handler
