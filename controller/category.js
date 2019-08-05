@@ -57,9 +57,7 @@ exports.del = async (req, res, next) => {
     await Category.remove({
       _id: id
     })
-    await Movie.remove({
-      category: id
-    })
+    await Movie.remove({ category: id })
     res.send({ success: true })
   } catch (err) {
     res.send({ success: false })

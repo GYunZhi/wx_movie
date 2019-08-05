@@ -4,6 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 const session = require('express-session')
 var xmlparser = require('express-xml-bodyparser');
+var xmlparser = require('express-xml-bodyparser');
+var multer = require('multer')
 var logger = require('morgan');
 const mongoose = require('mongoose')
 var moment = require('moment')
@@ -35,12 +37,26 @@ app.use(session({
   }
 }))
 
+// 使用 multer
+// 磁盘存储
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
+
+var upload = multer({ storage: storage })
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(xmlparser({ limit: '1MB' }))
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'uploads')));
 
 (async () => {
   // 连接数据库，
@@ -81,6 +97,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   var userRouter = require('./routes/user');
   var userMagRouter = require('./routes/userMag');
   var categoryRouter = require('./routes/category');
+  var movieRouter = require('./routes/movie');
 
 
 
@@ -88,6 +105,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   app.use('/user', userRouter);
   app.use('/admin/users', userMagRouter);
   app.use('/admin/category', categoryRouter);
+  app.use('/admin/movie', upload.any(), movieRouter);
   app.use('/', indexRouter);
 
   // catch 404 and forward to error handler

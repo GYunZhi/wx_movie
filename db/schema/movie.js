@@ -12,6 +12,7 @@ const MovieSchema = new Schema({
   poster: String,
   genres: [String],
   year: Number,
+  // pv 统计
   pv: {
     type: Number,
     default: 0
