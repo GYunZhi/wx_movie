@@ -36,11 +36,11 @@ router.get('/test/clearQuota', function(req, res, next) {
   })
 })
 
-// 跳到授权页面(静默授权)
+// 跳到授权页面 (静默授权)
 router.get('/oauth', function (req, res, next) {
   let id = req.query.id
   let type = 'snsapi_userinfo'
-  oauth(id, type).then(url => {
+  getOauth(id, type).then(url => {
     res.redirect(url)
   })
 })
