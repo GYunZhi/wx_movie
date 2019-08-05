@@ -1,0 +1,30 @@
+extends ../layout
+
+block content
+  .container
+    .panel
+      .panel-heading
+        h3 #{keyword}
+      .row
+        each item in movies
+          .col-md-3
+            .card(style='height: 410px;margin-bottom: 18px;')
+              a(href='/movie/' + item._id, style='display: block;height: 340px;overflow: hidden;')
+                if item.poster.indexOf('http') > -1
+                  img(src=item.poster, alt=item.title, style='width: 100%')
+                else
+                  img(src='/upload/' + item.poster, alt=item.title, style='width: 100%')
+              .card-body
+                p.card-text
+                  a(href='/movie/' + item._id) #{item.title}
+    ul.pagination
+      - for (let i = 0; i < totalPage; i++) {
+        - if (currentPage === (i + 1)) {
+            li.active
+              span #{currentPage}
+        - }
+        - else {
+            li
+              a(href='/results?' + query + '&p=' + i) #{i + 1}
+        - }
+      - }

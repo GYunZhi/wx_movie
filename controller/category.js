@@ -44,7 +44,7 @@ exports.add = async (req, res, next) => {
 exports.list = async (req, res, next) => {
   const categories = await Category.find({}, '_id name meta.updatedAt')
   await res.render('pages/category_list', {
-    title: '分类的列表页面',
+    title: '后台分类列表页面',
     categories
   })
 }

@@ -39,3 +39,48 @@ exports.detail = async (req, res, next) => {
     comments
   })
 }
+
+// 电影搜索功能
+exports.search = async (req, res, next) => {
+  const { cat, q, p } = req.query
+  const page = parseInt(p, 10) || 0
+  const count = 2
+  const index = page * count
+
+  if (cat) {
+    // 分类搜索
+    const categories = await Category.find({ _id: cat }).populate({
+      path: 'movies',
+      select: '_id title poster',
+      options: {
+        limit: 8
+      }
+    })
+    const category = categories[0]
+    let movies = category.movies || []
+    let results = movies.slice(index, index + count)
+
+    await res.render('pages/results', {
+      title: '分类搜索结果页面',
+      keyword: category.name,
+      currentPage: (page + 1),
+      query: 'cat=' + cat,
+      totalPage: Math.ceil(movies.length / count),
+      movies: results
+    })
+  } else {
+    // 关键字搜索
+    let movies = await Movie.find({
+      title: new RegExp(q + '.*', 'i')
+    })
+    let results = movies.slice(index, index + count)
+    await res.render('pages/results', {
+      title: '关键词搜索结果页面',
+      keyword: q,
+      currentPage: (page + 1),
+      query: 'q=' + q,
+      totalPage: Math.ceil(movies.length / count),
+      movies: results
+    })
+  }
+}

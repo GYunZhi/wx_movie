@@ -23,13 +23,15 @@ exports.show = async (req, res, next) => {
 
 // 上传海报之后拼接完整地址存入数据库
 exports.savePosterURL = async (req, res, next) => {
-  const posterData = req.files[0]
-  const fileName = posterData.filename
+  if(req.files.length > 0) {
+    const posterData = req.files[0]
+    const fileName = posterData.filename
 
-  if (fileName) {
-    // const url = req.protocol + '://' + req.get('host') + '/' + fileName
-    const url = '/' + fileName
-    req.poster = url
+    if (fileName) {
+      // const url = req.protocol + '://' + req.get('host') + '/' + fileName
+      const url = '/' + fileName
+      req.poster = url
+    }
   }
 
   next()
@@ -56,7 +58,7 @@ exports.add = async (req, res, next) => {
   let category
 
   // 如果 categoryId 不存在，创建一条新的category
-  if (categoryId) {
+  if (categoryId && categoryName === '') {
     category = await Category.findOne({ _id: categoryId })
   } else if (categoryName) {
     category = new Category({ name: categoryName })
@@ -90,7 +92,7 @@ exports.add = async (req, res, next) => {
 exports.list = async (req, res, next) => {
   const movies = await Movie.find({}).populate('category', 'name')
   await res.render('pages/movie_list', {
-    title: '分类的列表页面',
+    title: '后台电影列表页面',
     movies
   })
 }
