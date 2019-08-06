@@ -17,9 +17,9 @@ module.exports = {
       type: 'click',
       key: 'movie_sci'
     }, {
-      name: '魔法',
+      name: '动画',
       type: 'click',
-      key: 'movie_magic'
+      key: 'movie_cartoon'
     }]
   }, {
     name: '帮助',

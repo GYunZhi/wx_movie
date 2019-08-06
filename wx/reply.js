@@ -7,10 +7,8 @@ const help = '亲爱的，欢迎关注\n' +
   '回复 4，测试图片回复\n' +
   '回复 首页，进入网站首页\n' +
   '回复 电影名字，查询电影信息\n' +
-  '点击帮助，获取帮助信息\n' +
-  '某些功能呢订阅号无权限，比如网页授权\n' +
-  '回复语音，查询电影信息\n' +
-  '也可以点击 <a href="' + config.baseUrl + '/sdk">语音查电影</a>，查询电影信息\n'
+  '回复 语音，查询电影信息\n' +
+  '也可以点击 <a href="' + config.baseUrl + 'wx/jssdk">语音查电影</a>，查询电影信息\n'
 
 exports.reply = async (req, res, next) => {
   const message = req.message
@@ -472,15 +470,21 @@ exports.reply = async (req, res, next) => {
           console.log(err)
         }
         reply = '菜单创建成功，请等 5 分钟，或者先取消关注，再重新关注就可以看到新菜单'
-      } else if (content === '22') {
+      } else if (content === '更新菜单') {
         try {
           let menus = await wechat.handle('fetchMenu')
           console.log(JSON.stringify(menus))
         } catch (err) {
           console.log(err)
         }
+      } else if (content === '首页') {
+        reply = [{
+          title: '时光的余热',
+          description: '匆匆岁月时光去，总有一款你最爱',
+          picUrl: 'https://imoocday7.oss-cn-beijing.aliyuncs.com/WX20180701-224844.png',
+          url: config.baseUrl
+        }]
       }
-
       req.reply = reply
       break
     }
