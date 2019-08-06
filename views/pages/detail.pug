@@ -5,10 +5,7 @@ block content
     if movie && movie.title
       .row
         .col-md-7.col-sm-12
-          if movie.poster.indexOf('http') > -1
-            img#poster(src=movie.poster, alt=movie.title, width='100%')
-          else
-            img#poster(src='/upload/' + movie.poster, alt=movie.title, width='100%')
+          img#poster(src=movie.poster, alt=movie.title, width='100%')
         .col-md-5
           .dl-horizontal
             dt 电影名字
@@ -64,7 +61,7 @@ block content
 
       $.ajax({
         type: 'POST',
-        url: '/wechat/signature?url=' + encodeURIComponent(url)
+        url: '/wx/signature?url=' + encodeURIComponent(url)
       }).done(function(results) {
         if (results.success) {
           var data = results.data
@@ -100,11 +97,11 @@ block content
         var poster = '#{movie.poster}'
 
         if (poster.indexOf('http') === -1) {
-          poster = window.location.origin + '/upload/' + poster
+          poster = window.location.origin + '/' + poster
         }
 
         var shareContent = {
-          title: '#{movie.title}-时光的预热', // 分享标题
+          title: '#{movie.title}-时光的余热', // 分享标题
           desc: '匆匆岁月，看我找到了什么',
           link: window.location.origin, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
           imgUrl: poster, // 分享图标
@@ -116,6 +113,7 @@ block content
           }
         }
 
+        // 使用 js-sdk 图片预览功能
         var slides = {
           content: poster,
           urls: [poster]

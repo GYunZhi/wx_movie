@@ -70,4 +70,16 @@ router.get('/jssdk', function (req, res, next) {
   })
 })
 
+
+// 异步获取 signature，使用 jssdk
+router.post('/signature', function (req, res, next) {
+  let url = decodeURIComponent(req.query.url)
+  getSignature(url).then(data => {
+    res.send({
+      success: true,
+      data
+    })
+  })
+})
+
 module.exports = router;
