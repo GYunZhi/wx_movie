@@ -66,9 +66,9 @@ app.use(express.static(path.join(__dirname, 'uploads')));
   initSchemas()
 
   // 微信环境检查、授权跳转、用户数据存储
-  var { checkWechat, wechatRedirect } = require('./controller/wx')
-  app.use(checkWechat)
-  app.use(wechatRedirect)
+  // var { checkWechat, wechatRedirect } = require('./controller/wx')
+  // app.use(checkWechat)
+  // app.use(wechatRedirect)
 
   // 判断用户是否登录，使用 app.locals.user 定义全局数据，并在渲染模板中使用
   app.use(async (req, res, next) => {

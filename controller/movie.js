@@ -79,7 +79,10 @@ exports.add = async (req, res, next) => {
 
   if (category) {
     category.movies = category.movies || []
-    category.movies.push(movie._id)
+    // 电影不存在时更新分类中的电影
+    if (category.movies.indexOf(movie._id) === -1) {
+      category.movies.push(movie._id)
+    }
     await category.save()
   }
 

@@ -7,16 +7,13 @@ block content
         .panel(style='margin: 18px 0;')
           .panel-heading
             h3
-              a(href='/results?cat=' + cat._id + '&p=0') #{cat.name}
+              a(href='/results?catId=' + cat._id + '&p=0') #{cat.name}
         .row
           each item in cat.movies
             .col-md-3
               .card(style='height: 410px;margin-bottom: 18px;')
                 a(href='/movie/' + item._id, style='display: block;height: 340px;overflow: hidden;')
-                  if item.poster.indexOf('http') > -1
-                    img(src=item.poster, alt=item.title, style='width: 100%')
-                  else
-                    img(src='/upload/' + item.poster, alt=item.title, style='width: 100%')
+                  img(src=item.poster, alt=item.title, style='width: 100%')
                 .card-body
                   p.card-text
                     a(href='/movie/' + item._id) #{item.title}

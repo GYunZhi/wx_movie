@@ -6,10 +6,10 @@ block content
       form.form-horizontal(method='post', action='/admin/movie', enctype="multipart/form-data")
         if movie
           input(type='hidden', name='_id', value=movie._id)
-        //- .form-group
-        //-   label.col-md-10.control-label(for="inputDouban") 豆瓣同步
-        //-   .col-md-10
-        //-     input#inputDouban.form-control(type='text', name='doubanId', value=movie ? movie.doubanId : '')
+        .form-group
+          label.col-md-10.control-label(for="inputDouban") 豆瓣同步
+          .col-md-10
+            input#inputDouban.form-control(type='text', name='doubanId', value=movie ? movie.doubanId : '')
         .form-group
           div.col-md-10.control-label(for="inputCategory") 分类选择
           if categories
@@ -69,7 +69,7 @@ block content
         if (id) {
           $.ajax({
           type: 'get',
-          url: 'https://api.douban.com/v2/movie/subject/' + id,
+          url: 'https://api.douban.com/v2/movie/subject/' + id + '?apikey=0b2bdeda43b5688921839c8ecb20399b',
           dataType: 'jsonp',
           crossDomain: true,
           cache: true,

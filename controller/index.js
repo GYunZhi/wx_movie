@@ -43,14 +43,14 @@ exports.detail = async (req, res, next) => {
 
 // 电影搜索功能
 exports.search = async (req, res, next) => {
-  const { cat, q, p } = req.query
+  const { catId, q, p } = req.query
   const page = parseInt(p, 10) || 0
   const count = 4
   const index = page * count
 
-  if (cat) {
+  if (catId) {
     // 分类搜索
-    const categories = await Category.find({ _id: cat }).populate({
+    const categories = await Category.find({ _id: catId }).populate({
       path: 'movies',
       select: '_id title poster',
       options: {
@@ -65,7 +65,7 @@ exports.search = async (req, res, next) => {
       title: '分类搜索结果页面',
       keyword: category.name,
       currentPage: (page + 1),
-      query: 'cat=' + cat,
+      query: 'catId=' + catId,
       totalPage: Math.ceil(movies.length / count),
       movies: results
     })
