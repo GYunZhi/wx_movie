@@ -2,6 +2,7 @@ const _ = require('lodash')
 const mongoose = require('mongoose')
 const Movie = mongoose.model('Movie')
 const Category = mongoose.model('Category')
+const api = require('../api/movie')
 
 // 后台电影录入页面
 exports.show = async (req, res, next) => {
@@ -9,10 +10,10 @@ exports.show = async (req, res, next) => {
   let movie = {}
 
   if (_id) {
-    movie = await Movie.findOne({ _id })
+    movie = await api.findMovieById(_id)
   }
 
-  let categories = await Category.find({}, '_id name meta.updatedAt')
+  let categories = await api.findCategories()
 
   await res.render('pages/movie_admin', {
     title: '后台电影录入页面',
@@ -44,7 +45,7 @@ exports.add = async (req, res, next) => {
   let movie
 
   if (movieData._id) {
-    movie = await Movie.findOne({ _id: movieData._id })
+    movie = await api.findMovieById(movieData._id)
   }
 
   // 用户上传的海报
@@ -54,14 +55,15 @@ exports.add = async (req, res, next) => {
 
   // 电影和分类关联
   const categoryId = movieData.categoryId
-  const categoryName = movieData.categoryName
+  const categoryName = movieData.categoryName // 兼容用户忘记选择分类的情况
   let category
 
   // 如果 categoryId 不存在，创建一条新的category
   if (categoryId && categoryName === '') {
-    category = await Category.findOne({ _id: categoryId })
+    category = await api.findCategoryById(categoryId)
   } else if (categoryName) {
     category = new Category({ name: categoryName })
+
     await category.save()
   }
 
@@ -75,7 +77,7 @@ exports.add = async (req, res, next) => {
     movie = new Movie(movieData)
   }
 
-  category = await Category.findOne({ _id: category._id })
+  category = await api.findCategoryById(category._id)
 
   if (category) {
     category.movies = category.movies || []
@@ -93,7 +95,8 @@ exports.add = async (req, res, next) => {
 
 // 电影的后台列表
 exports.list = async (req, res, next) => {
-  const movies = await Movie.find({}).populate('category', 'name')
+
+  const movies = await api.findMoviesAndCategory('name')
   await res.render('pages/movie_list', {
     title: '后台电影列表页面',
     movies
