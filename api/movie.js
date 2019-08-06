@@ -4,7 +4,7 @@ const Movie = mongoose.model('Movie')
 const request = require('request-promise')
 const _ = require('lodash')
 
-// 更新电影库（加入库中没有的电影）
+// 更新电影库
 const updateMovies = async (movie) => {
   const options = {
     uri: `https://api.douban.com/v2/movie/subject/${movie.doubanId}?apikey=0b2bdeda43b5688921839c8ecb20399b`,
@@ -13,13 +13,17 @@ const updateMovies = async (movie) => {
 
   const data = await request(options)
 
+  const director = data.directors[0] || ''
+
   _.extend(movie, {
     country: data.countries[0],
     language: data.language,
-    summary: data.summary
+    summary: data.summary,
+    genres: data.genres,
+    director: director.name
   })
 
-  const genres = movie.genres
+  const genres = data.genres || []
 
   if (genres && genres.length) {
     await Promise.all(genres.forEach(async genre => {
@@ -47,51 +51,34 @@ const updateMovies = async (movie) => {
   }
 }
 
-// 根据豆瓣查询电影
+// 根据豆瓣查询电影（同步一部电影）
 exports.searchByDouban = async (q) => {
+
   const options = {
-    uri: `https://api.douban.com/v2/movie/search?q=${encodeURIComponent(q)}?apikey=0b2bdeda43b5688921839c8ecb20399b`,
+    uri: `https://movie.douban.com/j/subject_suggest?q=${encodeURIComponent(q)}&apikey=0b2bdeda43b5688921839c8ecb20399b`,
     json: true
   }
 
   const data = await request(options)
-  let subjects = []
+
   let movies = []
 
-  if (data && data.subjects) {
-    subjects = data.subjects
-  }
+  if (data.length) {
 
-  if (subjects.length) {
-    await Promise.all(subjects.map(async item => {
-      let movie = await Movie.findOne({
-        doubanId: item.id
-      })
-
-      if (movie) {
-        movies.push(movie)
-      } else {
-        const directors = item.directors || []
-        const director = directors[0] || {}
-
-        movie = new Movie({
-          title: item.title,
-          director: director.name,
-          doubanId: item.id,
-          year: item.year,
-          genres: item.genres || [],
-          poster: item.images.large
-        })
-
-        movie = await movie.save()
-
-        movies.push(movie)
-      }
-    }))
-
-    movies.forEach(movie => {
-      updateMovies(movie)
+    let movie = new Movie({
+      title: data[0].title,
+      summary: data[0].sub_title,
+      doubanId: data[0].id,
+      year: data[0].year,
+      poster: data[0].img
     })
+
+    movie = await movie.save()
+
+    movies.push(movie)
+
+    // 更新电影
+    updateMovies(movie)
   }
 
   return movies

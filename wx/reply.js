@@ -1,14 +1,15 @@
 const { resolve } = require('path')
 const commonMenu = require('./menu')
 const config = require('../conf/config.default')
+const api = require('../api/movie')
 
-const help = '亲爱的，欢迎关注\n' +
+const help = '亲爱的，欢迎关注时光的余热\n' +
   '回复 1-3，测试文字回复\n' +
   '回复 4，测试图片回复\n' +
   '回复 首页，进入网站首页\n' +
   '回复 电影名字，查询电影信息\n' +
   '回复 语音，查询电影信息\n' +
-  '也可以点击 <a href="' + config.baseUrl + 'wx/jssdk">语音查电影</a>，查询电影信息\n'
+  '也可以点击 <a href="' + config.baseUrl + '/wx/jssdk">语音查电影</a>，查询电影信息\n'
 
 exports.reply = async (req, res, next) => {
   const message = req.message
@@ -32,6 +33,11 @@ exports.reply = async (req, res, next) => {
       let reply = ''
       if (message.event === 'subscribe') {
         reply = '欢迎订阅！'
+        if (message.eventkey && message.ticket) {
+          reply += '扫码参数是：' + message.EventKey + '_' + message.ticket
+        } else {
+          reply = help
+        }
       } else if (message.event === 'unsubscribe') {
         reply = '取消订阅'
       } else if (message.event === 'SCAN') {
@@ -42,31 +48,31 @@ exports.reply = async (req, res, next) => {
         if (message.eventkey === 'help') {
           reply = help
         } else if (message.eventkey === 'movie_hot') {
-          let movies = await api.movie.findHotMovies(-1, 4)
+          let movies = await api.findHotMovies(-1, 4)
           reply = []
 
           movies.forEach(movie => {
             reply.push({
               title: movie.title,
               description: movie.summary,
-              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/' + movie.poster),
               url: config.baseUrl + '/movie/' + movie._id
             })
           })
         } else if (message.eventkey === 'movie_cold') {
-          let movies = await api.movie.findHotMovies(1, 4)
+          let movies = await api.findHotMovies(1, 4)
           reply = []
 
           movies.forEach(movie => {
             reply.push({
               title: movie.title,
               description: movie.summary,
-              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/' + movie.poster),
               url: config.baseUrl + '/movie/' + movie._id
             })
           })
         } else if (message.eventkey === 'movie_sci') {
-          let catData = await api.movie.findMoviesByCat('科幻')
+          let catData = await api.findMoviesByCat('科幻')
           let movies = catData.movies || []
           reply = []
 
@@ -75,12 +81,12 @@ exports.reply = async (req, res, next) => {
             reply.push({
               title: movie.title,
               description: movie.summary,
-              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/' + movie.poster),
               url: config.baseUrl + '/movie/' + movie._id
             })
           })
-        } else if (message.eventkey === 'movie_love') {
-          let catData = await api.movie.findMoviesByCat('爱情')
+        } else if (message.eventkey === 'movie_cartoon') {
+          let catData = await api.findMoviesByCat('动画')
           let movies = catData.movies || []
           reply = []
 
@@ -88,7 +94,7 @@ exports.reply = async (req, res, next) => {
             reply.push({
               title: movie.title,
               description: movie.summary,
-              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/upload/' + movie.poster),
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/' + movie.poster),
               url: config.baseUrl + '/movie/' + movie._id
             })
           })
@@ -113,7 +119,6 @@ exports.reply = async (req, res, next) => {
       break
     }
     case 'text': {
-
       let content = message.content
       let reply = 'Oh, 你说的 ' + message.content + ' 太复杂了，无法解析'
 
@@ -462,7 +467,7 @@ exports.reply = async (req, res, next) => {
         console.log(JSON.stringify(menus))
 
         reply = '个性化菜单创建成功，地理位置为中国北京的用户可以使用个性化菜单'
-      } else if (content === '21') {
+      } else if (content === '更新菜单') {
         try {
           await wechat.handle('deleteMenu')
           await wechat.handle('createMenu', commonMenu)
@@ -470,13 +475,6 @@ exports.reply = async (req, res, next) => {
           console.log(err)
         }
         reply = '菜单创建成功，请等 5 分钟，或者先取消关注，再重新关注就可以看到新菜单'
-      } else if (content === '更新菜单') {
-        try {
-          let menus = await wechat.handle('fetchMenu')
-          console.log(JSON.stringify(menus))
-        } catch (err) {
-          console.log(err)
-        }
       } else if (content === '首页') {
         reply = [{
           title: '时光的余热',
@@ -484,6 +482,40 @@ exports.reply = async (req, res, next) => {
           picUrl: 'https://imoocday7.oss-cn-beijing.aliyuncs.com/WX20180701-224844.png',
           url: config.baseUrl
         }]
+      }  else {
+        // 关键字
+        let movies = await api.searchByKeyword(content)
+        reply = []
+
+        // 分类
+        if (!movies || movies.length === 0) {
+          let catData = await api.findMoviesByCat(content)
+          if (catData) {
+            movies = catData.movies
+          }
+        }
+
+        // 豆瓣
+        if (!movies || movies.length === 0) {
+          movies = await api.searchByDouban(content)
+        }
+
+        if (!movies || movies.length) {
+          movies = movies.slice(0, 4)
+
+          console.log('999', movies)
+          movies.forEach(movie => {
+            reply.push({
+              title: movie.title,
+              description: movie.summary,
+              picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/' + movie.poster),
+              url: config.baseUrl + '/movie/' + movie._id
+            })
+          })
+        } else {
+          // 搜索结果为空
+          reply = '没有查询到与 ' + content + ' 相关的电影，要不要换一个名字试试看哦！'
+        }
       }
       req.reply = reply
       break

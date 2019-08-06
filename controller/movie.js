@@ -59,7 +59,7 @@ exports.add = async (req, res, next) => {
   let category
 
   // 如果 categoryId 不存在，创建一条新的category
-  if (categoryId && categoryName === '') {
+  if (categoryId) {
     category = await api.findCategoryById(categoryId)
   } else if (categoryName) {
     category = new Category({ name: categoryName })

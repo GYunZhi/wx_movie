@@ -28,7 +28,7 @@ clearQuota = async () => {
 
 getOauth = async (id, type) => {
   const scope = type
-  const target = config.baseUrl + 'wx/userinfo'
+  const target = config.baseUrl + '/wx/userinfo'
   const state = id
   const url = oauth.getAuthorizeURL(scope, target, state)
   return url

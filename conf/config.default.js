@@ -6,5 +6,5 @@ module.exports = {
   },
   db: 'mongodb://localhost/wx_movie',
   // 代理地址
-  baseUrl: 'http://2x580485l1.qicp.vip/'
+  baseUrl: 'http://2x580485l1.qicp.vip'
 }
