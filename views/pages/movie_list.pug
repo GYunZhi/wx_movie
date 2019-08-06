@@ -26,10 +26,7 @@ block content
                     | #{item.category.name}
                 td #{item.title}
                 td
-                  if item.poster.indexOf('http') > -1
-                    img(src=item.poster, width=100)
-                  else
-                    img(src=item.poster, width=100)
+                  img(src=item.poster, width=100)
                 td #{item.director}
                 td #{item.country}
                 td #{item.year}

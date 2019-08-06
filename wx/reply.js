@@ -9,7 +9,7 @@ const help = '亲爱的，欢迎关注时光的余热\n' +
   '回复 首页，进入网站首页\n' +
   '回复 电影名字，查询电影信息\n' +
   '回复 语音，查询电影信息\n' +
-  '也可以点击 <a href="' + config.baseUrl + '/wx/jssdk">语音查电影</a>，查询电影信息\n'
+  '也可以试试 <a href="' + config.baseUrl + '/wx/jssdk">语音查音乐</a>，查询你想听的音乐\n'
 
 exports.reply = async (req, res, next) => {
   const message = req.message
@@ -20,7 +20,41 @@ exports.reply = async (req, res, next) => {
 
   switch(message.msgtype) {
     case 'voice': {
+      let content = message.recognition
       let reply = ''
+
+      // 关键字搜索
+      let movies = await api.searchByKeyword(content)
+      reply = []
+
+      // 分类搜索
+      if (!movies || movies.length === 0) {
+        let catData = await api.findMoviesByCat(content)
+        if (catData) {
+          movies = catData.movies
+        }
+      }
+
+      // 豆瓣搜索
+      if (!movies || movies.length === 0) {
+        movies = await api.searchByDouban(content)
+      }
+
+      if (!movies || movies.length) {
+        movies = movies.slice(0, 4)
+
+        movies.forEach(movie => {
+          reply.push({
+            title: movie.title,
+            description: movie.summary,
+            picUrl: movie.poster.indexOf('http') > -1 ? movie.poster : (config.baseUrl + '/' + movie.poster),
+            url: config.baseUrl + '/movie/' + movie._id
+          })
+        })
+      } else {
+        // 搜索结果为空
+        reply = '没有查询到与 ' + content + ' 相关的电影，要不要换一个名字试试看哦！'
+      }
 
       req.reply = reply
       break
@@ -483,11 +517,11 @@ exports.reply = async (req, res, next) => {
           url: config.baseUrl
         }]
       }  else {
-        // 关键字
+        // 关键字搜索
         let movies = await api.searchByKeyword(content)
         reply = []
 
-        // 分类
+        // 分类搜索
         if (!movies || movies.length === 0) {
           let catData = await api.findMoviesByCat(content)
           if (catData) {
@@ -495,7 +529,7 @@ exports.reply = async (req, res, next) => {
           }
         }
 
-        // 豆瓣
+        // 豆瓣搜索
         if (!movies || movies.length === 0) {
           movies = await api.searchByDouban(content)
         }
