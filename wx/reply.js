@@ -2,6 +2,7 @@ const { resolve } = require('path')
 const commonMenu = require('./menu')
 const config = require('../conf/config.default')
 const api = require('../api/movie')
+const { saveMPUser } = require('../controller/wx')
 
 const help = '亲爱的，欢迎关注时光的余热\n' +
   '回复 1-3，测试文字回复\n' +
@@ -68,7 +69,7 @@ exports.reply = async (req, res, next) => {
       if (message.event === 'subscribe') {
         reply = '欢迎订阅！'
         if (message.eventkey && message.ticket) {
-          reply += '扫码参数是：' + message.EventKey + '_' + message.ticket
+          reply += '扫码参数是：' + message.eventkey + '_' + message.ticket
         } else {
           reply = help
         }
@@ -158,7 +159,26 @@ exports.reply = async (req, res, next) => {
 
       // 匹配回复
       if (content === 'imooc') {
-        reply = `哎呦喂！你是来自慕课的小伙伴`
+        const countData = await saveMPUser(message, 'imooc')
+        const user = countData.user
+        const count = countData.count
+        let nickname = user.nickname || ''
+
+        if (user.gender === '1') {
+          nickname = `小鲜肉 - ${nickname}`
+        } else if (user.gender === '2') {
+          nickname = `小姐姐 - ${nickname}`
+        }
+
+        let guess = '我猜不出你来自哪里，'
+
+        if (user.province || user.city) {
+          guess = `我猜你来自${user.province}省，${user.city}市，`
+        }
+
+        let end = `${guess}哈哈，这些信息只有你关注我才能从微信服务器拿到，别紧张，跟着 Scott 学习微信开发，你也可以快速做出一个属于自己的应用，加油！`
+
+        reply = `哎呦喂！你是来自慕课的${nickname}，你有 ${count} 个来自慕课的小伙伴开始研究这个课程了，${end}`
       } else if  (content === '1') {
         reply = '天下第一吃大米'
       } else if (content === '2') {
@@ -358,10 +378,10 @@ exports.reply = async (req, res, next) => {
         // let tempQr = wechat.showQrcode(tempTicketData.ticket)
 
         let qrData = {
-          action_name: 'QR_LIMIT_SCENE',
+          action_name: 'QR_LIMIT_STR_SCENE',
           action_info: {
             scene: {
-              scene_id: 99
+              scene_str: 'imooc'
             }
           }
         }

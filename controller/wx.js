@@ -3,7 +3,7 @@ const config = require('../conf/config.default')
 const { sign } = require('../wx_lib/utils')
 
 // 获取 WeChat, WechatOAuth 实例
-const { getWechat, getOAuth} = require('../wx/index')
+const { getWechat, getOAuth } = require('../wx/index')
 
 let wechat = getWechat()
 let oauth = getOAuth()
@@ -141,6 +141,84 @@ saveWechatUser = async (userData) => {
   return user
 }
 
+// 持久化用户
+// 对用户打标签和统计
+saveMPUser = async (message, from = '') => {
+  let sceneId = message.eventkey
+  let openid = message.fromusername
+  let count = 0
+
+  if (sceneId && sceneId.indexOf('qrscene_') > -1) {
+    sceneId = sceneId.replace('qrscene_', '')
+  }
+
+  let user = await User.findOne({
+    openid: openid
+  })
+
+  let userInfo = await wechat.handle('getUserInfo', openid)
+
+  if (sceneId === 'imooc') {
+    from = 'imooc'
+  }
+
+  if (!user) {
+    let userData = {
+      from: from,
+      openid: [userInfo.openid],
+      unionid: userInfo.unionid,
+      nickname: userInfo.nickname,
+      email: (userInfo.unionid || userInfo.openid) + '@wx.com',
+      province: userInfo.province,
+      country: userInfo.country,
+      city: userInfo.city,
+      gender: userInfo.gender || userInfo.sex
+    }
+
+    user = new User(userData)
+    user = await user.save()
+  }
+
+  // 打标签分组
+  if (from === 'imooc') {
+    let tagid
+
+    count = await User.count({
+      from: 'imooc'
+    })
+
+    try {
+      let tagsData = await wechat.handle('fetchTags')
+
+      tagsData = tagsData || {}
+      const tags = tagsData.tags || []
+      const tag = tags.filter(tag => {
+        return tag.name === 'imooc'
+      })
+
+      if (tag && tag.length > 0) {
+        tagid = tag[0].id
+        count = tag[0].count || 0
+      } else {
+        let res = await wechat.handle('createTag', 'imooc')
+
+        tagid = res.tag.id
+      }
+
+      if (tagid) {
+        await wechat.handle('batchTag', [openid], tagid)
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  return {
+    user,
+    count
+  }
+}
+
 module.exports = {
   fetchAccessToken,
   fetchTicket,
@@ -151,5 +229,6 @@ module.exports = {
   isWechat,
   checkWechat,
   wechatRedirect,
-  saveWechatUser
+  saveWechatUser,
+  saveMPUser
 }
