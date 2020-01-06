@@ -1,65 +1,63 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
+var createError = require('http-errors')
+var express = require('express')
+var path = require('path')
+var cookieParser = require('cookie-parser')
 const session = require('express-session')
-var xmlparser = require('express-xml-bodyparser');
-var xmlparser = require('express-xml-bodyparser');
+var xmlparser = require('express-xml-bodyparser')
 var multer = require('multer')
-var logger = require('morgan');
+var logger = require('morgan')
 const mongoose = require('mongoose')
 var moment = require('moment')
 
+var config = require('./conf/config.default')
+var { connect, initSchemas } = require('./db/init')
 
-var config = require('./conf/config.default');
-var { connect, initSchemas } = require('./db/init');
-
-var app = express();
+var app = express()
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'))
+app.set('view engine', 'pug')
 
 // 添加 moment
-app.locals.moment = moment;
+app.locals.moment = moment
 
-app.use(logger('dev'));
-
+app.use(logger('dev'))
 
 // 配置 session
-app.use(session({
-  name: 'userId',
-  secret: 'WJiol#23123_',
-  cookie: {
-    // path: '/',   // 默认配置
-    // httpOnly: true,  // 默认配置
-    maxAge: 12 * 60 * 60 * 1000
-  }
-}))
+app.use(
+  session({
+    name: 'userId',
+    secret: 'WJiol#23123_',
+    cookie: {
+      // path: '/',   // 默认配置
+      // httpOnly: true,  // 默认配置
+      maxAge: 12 * 60 * 60 * 1000
+    }
+  })
+)
 
 // 使用 multer
 // 磁盘存储
 var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function(req, file, cb) {
     cb(null, 'uploads')
   },
-  filename: function (req, file, cb) {
+  filename: function(req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname)
   }
 })
 
 var upload = multer({ storage: storage })
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 app.use(xmlparser({ limit: '1MB' }))
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'uploads')));
-
-(async () => {
-  // 连接数据库，
+app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, 'uploads')))
+;(async () => {
+  // 连接数据库
   await connect(config.db)
 
   // 初始化schema
@@ -97,36 +95,35 @@ app.use(express.static(path.join(__dirname, 'uploads')));
     await next()
   })
 
-  var indexRouter = require('./routes/index');
-  var wxRouter = require('./routes/wx');
-  var userRouter = require('./routes/user');
-  var userMagRouter = require('./routes/userMag');
-  var categoryRouter = require('./routes/category');
-  var movieRouter = require('./routes/movie');
+  var indexRouter = require('./routes/index')
+  var wxRouter = require('./routes/wx')
+  var userRouter = require('./routes/user')
+  var userMagRouter = require('./routes/userMag')
+  var categoryRouter = require('./routes/category')
+  var movieRouter = require('./routes/movie')
 
-  app.use('/wx', wxRouter);
-  app.use('/user', userRouter);
-  app.use('/admin/users', userMagRouter);
-  app.use('/admin/category', categoryRouter);
-  app.use('/admin/movie', upload.any(), movieRouter);
-  app.use('/', indexRouter);
+  app.use('/wx', wxRouter)
+  app.use('/user', userRouter)
+  app.use('/admin/users', userMagRouter)
+  app.use('/admin/category', categoryRouter)
+  app.use('/admin/movie', upload.any(), movieRouter)
+  app.use('/', indexRouter)
 
   // catch 404 and forward to error handler
-  app.use(function (req, res, next) {
-    next(createError(404));
-  });
+  app.use(function(req, res, next) {
+    next(createError(404))
+  })
 
   // error handler
-  app.use(function (err, req, res, next) {
+  app.use(function(err, req, res, next) {
     // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'develop' ? err : {};
+    res.locals.message = err.message
+    res.locals.error = req.app.get('env') === 'develop' ? err : {}
 
     // render the error page
-    res.status(err.status || 500);
-    res.render('error');
-  });
+    res.status(err.status || 500)
+    res.render('error')
+  })
 })()
 
-module.exports = app;
-
+module.exports = app
